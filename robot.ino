@@ -93,17 +93,24 @@ bool paredDerecha(){
     int dis=SharpIR1.distance();
     return dis<100;
 }
+int distDerecha(){
+    return SharpIR1.distance();
+}
+
+int distIzquierda(){
+    return SharpIR2.distance();
+}
 bool paredIzquierda(){
-    //SharpIR SharpIR(SENSOR_DERECHA, model);
     int dis=SharpIR2.distance();
     return dis<100;
 }
 bool paredFrente(){
-    //SharpIR SharpIR(SENSOR_DERECHA, model);
     int dis=SharpIR3.distance();
     return dis<100;
 }
-
+int distFrente(){
+    return SharpIR3.distance();
+}
 void girarDerecha(){
     orientacion+=(orientacion==270)?-270:90;
     do{
