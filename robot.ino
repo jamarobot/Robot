@@ -15,6 +15,10 @@
 #define VEL_GIRO 50
 #define VEL_AVANCE 50
 #define model 20150
+int KP =5;
+int KD =205;
+
+
 Counter myCounter(ENCODER);
 DcMotor IZQ;
 DcMotor DER;
@@ -40,7 +44,7 @@ void setup(){
     Serial1.begin(9600);
 }
 void loop(){
-     if (Serial1.available()){
+     /*if (Serial1.available()){
         estado=!estado;
         
         char data=Serial1.read();
@@ -49,8 +53,9 @@ void loop(){
         {
         case 'd':
             girarDerecha();
-            break;
-        
+            avanzar();
+            girarIzquierda();
+            break;        
         case 'i':
             girarIzquierda();
             break;
@@ -64,30 +69,17 @@ void loop(){
         case 'r':
             runPath("WWADW");
             break;
+        case 'p':
+            navegar();
+        break;
 
         }
         estado=false;
-    }
-}
-    /*if(estado){
-        DER.goForward();
-        IZQ.goBackward();
-        digitalWrite(LED_BUILTIN,HIGH);
     }else{
-        digitalWrite(LED_BUILTIN,LOW);
-        DER.stop();
-        IZQ.stop();
-    }
-    //digitalWrite(LED_BUILTIN, (encendido)?HIGH:LOW);
-    //encendido=!encendido;
-    //delay(500);*/
-
-/*long newValue = myCounter.read();
-  if (newValue != oldValue) {
-    oldValue = newValue;
-    Serial.println(newValue);
-  }*/
-
+        navegar();
+    }*/
+    navegar();
+}
 bool paredDerecha(){
     //SharpIR SharpIR(SENSOR_DERECHA, model);
     int dis=SharpIR1.distance();
@@ -111,6 +103,8 @@ bool paredFrente(){
 int distFrente(){
     return SharpIR3.distance();
 }
+
+
 void girarDerecha(){
     orientacion+=(orientacion==270)?-270:90;
     do{
@@ -158,7 +152,7 @@ void runPath(String path){
         switch (path.charAt(i))
         {
         case 'D':
-            girarDerecha();
+            girarDerecha();//esto lo cambiaremos por correcciones de direccion
         break;
         case 'A':
             girarIzquierda();
@@ -169,7 +163,31 @@ void runPath(String path){
         }
     }
 }
+
+
 void girarNecesario(int orig, int need){
 //int desfase=orig-need;
 //if(des)
+}
+int error = 0;
+//int error_anterior;
+int vel_der=VEL_AVANCE;
+int vel_izq=VEL_AVANCE;
+int desfase;
+
+
+void navegar(){
+    int error_anterior=error;
+    error = distDerecha() - distIzquierda();
+    Serial1.println(error);
+    desfase = (KP * error + KD * (error-error_anterior));
+    vel_izq=(vel_izq+desfase>80)?80:vel_izq+desfase;//si la velocidad mas desfase va a ser mayor que 255 la limito
+    vel_der=(vel_der-desfase<50)?50:vel_der-desfase;
+  DER.move(vel_der);
+  IZQ.move(vel_izq);
+  Serial1.print(vel_izq);
+  Serial1.print("__");
+  Serial1.println(vel_izq);
+    //delay(400);
+
 }
