@@ -15,8 +15,8 @@
 #define VEL_GIRO 50
 #define VEL_AVANCE 50
 #define model 20150
-int KP =0;
-int KD =205;
+int KP = 0;
+int KD = 205;
 
 
 Counter myCounter(ENCODER);
@@ -29,7 +29,7 @@ SharpIR SharpIR3(SENSOR_FRENTE, model);
 
 bool estado=false;
 bool encendido=true;
-long oldValue  = 0;
+long oldValue = 0;
 long newValue;
 
 int orientacion=0;
@@ -44,6 +44,27 @@ void setup(){
     Serial1.begin(9600);
 }
 void loop(){
+    if(Serial1.available()>2){
+        char letra=Serial1.read();
+        int data=Serial1.read();
+        switch (letra)
+        {
+        case 'p':
+            KP=data;
+            Serial1.println(KP);
+            Serial1.println("entro en p");
+            break;
+        case 'd':
+            KD=data;
+            Serial1.println(KD);
+            Serial1.println("entro en d");
+            break;        
+        
+        default:
+            break;
+        }
+        //Serial1.println((int)Serial1.read());
+    }
      /*if (Serial1.available()){
         estado=!estado;
         
@@ -203,16 +224,18 @@ int desfase;
 void navegar(){
     int error_anterior=error;
     error = distDerecha() - distIzquierda();
-    Serial1.println(error);
+    error=constrain(error,-10,10);
     desfase = (KP * error + KD * (error-error_anterior));
-    vel_izq=(vel_izq+desfase>50)?50:vel_izq+desfase;//si la velocidad mas desfase va a ser mayor que 255 la limito
-    vel_der=(vel_der-desfase<50)?50:vel_der-desfase;
-  DER.move(vel_der);
-  IZQ.move(vel_izq);
+    desfase=constrain(desfase, -10, 10);
+    vel_izq=constrain(vel_izq+desfase,0,50);//si la velocidad mas desfase va a ser mayor que 255 la limito
+    vel_der=constrain(vel_der-desfase,0,50);
+    DER.move(vel_der);
+    IZQ.move(vel_izq);
+  /*Serial1.println(desfase);
   Serial1.print(vel_izq);
   Serial1.print("__");
-  Serial1.println(vel_izq);
-   
+  Serial1.println(vel_der);
+*/
 
 }
 int charToDirection(char dir){
