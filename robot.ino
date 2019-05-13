@@ -15,7 +15,7 @@
 #define VEL_GIRO 50
 #define VEL_AVANCE 50
 #define model 20150
-int KP =5;
+int KP =0;
 int KD =205;
 
 
@@ -166,8 +166,11 @@ void runPath(String path){
 
 
 void girarNecesario(int orig, int need){
-//int desfase=orig-need;
-//if(des)
+    int delta=orig-need;
+    if(abs(delta)>180){
+        
+    }
+
 }
 int error = 0;
 //int error_anterior;
@@ -181,13 +184,27 @@ void navegar(){
     error = distDerecha() - distIzquierda();
     Serial1.println(error);
     desfase = (KP * error + KD * (error-error_anterior));
-    vel_izq=(vel_izq+desfase>80)?80:vel_izq+desfase;//si la velocidad mas desfase va a ser mayor que 255 la limito
+    vel_izq=(vel_izq+desfase>50)?50:vel_izq+desfase;//si la velocidad mas desfase va a ser mayor que 255 la limito
     vel_der=(vel_der-desfase<50)?50:vel_der-desfase;
   DER.move(vel_der);
   IZQ.move(vel_izq);
   Serial1.print(vel_izq);
   Serial1.print("__");
   Serial1.println(vel_izq);
-    //delay(400);
+   
+
+}
+int charToDirection(char dir){
+    switch (dir)
+    {
+        case 'W':
+            return 0;
+        case 'D':
+            return 90;
+        case 'A':            
+            return 270;
+        case 'S':
+            return 180;
+    }
 
 }
