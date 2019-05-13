@@ -104,9 +104,18 @@ int distFrente(){
     return SharpIR3.distance();
 }
 
-
+/*
+ * Metodo para que gire a la derecha utilizando metodos move de la libreria
+ * se pasa la orientacion y la velocidad de giro
+ */
 void girarDerecha(){
     orientacion+=(orientacion==270)?-270:90;
+   /* if(orientacion==270){
+      orientacion=orientacion-270;
+    }else{
+      orientacion=orientacion+90;
+    }
+    */
     do{
             IZQ.move(FORWARD,VEL_GIRO);
             DER.move(BACKWARD,VEL_GIRO);
@@ -120,6 +129,10 @@ void girarDerecha(){
     Serial1.println(orientacion);
 }
 
+/*
+ * Metodo para que gire a la izquierda utilizando metodos move de la libreria
+ * se pasa la orientacion y la velocidad de giro
+ */
 void girarIzquierda(){
     orientacion-=(orientacion==0)?-270:90;
     do{
@@ -134,6 +147,10 @@ void girarIzquierda(){
     IZQ.stop();
     Serial1.println(orientacion);
 }
+
+/*
+ * Metodo para avanzar
+ */
 void avanzar(){
     do{
         DER.move(FORWARD,VEL_GIRO);
@@ -146,7 +163,9 @@ void avanzar(){
     DER.stop();
     IZQ.stop();
 }
-
+/*
+ * 
+ */
 void runPath(String path){
     for(int i=0;i<path.length();i++){
         switch (path.charAt(i))
@@ -178,7 +197,9 @@ int vel_der=VEL_AVANCE;
 int vel_izq=VEL_AVANCE;
 int desfase;
 
-
+/*
+ * Metodo principal para navegar por el laberinto
+ */
 void navegar(){
     int error_anterior=error;
     error = distDerecha() - distIzquierda();
