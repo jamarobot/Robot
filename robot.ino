@@ -15,16 +15,16 @@
 #define VEL_GIRO 50
 #define VEL_AVANCE 50
 #define model 20150
-#define VELOCIDAD_MINIMA 25
-#define VELOCIDAD_MAXIMA 50
+#define VELOCIDAD_MINIMA 20
+#define VELOCIDAD_MAXIMA 100
 #define DISTANCIA_MEDIA 40
-
+#define DELAY 10
 
 
 #define NAVEGAR
 //#define CONTROL
-int KP = 0;
-int KD = 540;
+int KP = 5;
+int KD = 25;
 
 
 Counter myCounter(ENCODER);
@@ -94,15 +94,14 @@ void loop() {
     }
 #endif
 #ifdef NAVEGAR
-    navegar();
+    navegar(); 
 #endif
-  }
 }
+
 
 bool hayParedDerecha() {
   //SharpIR SharpIR(SENSOR_DERECHA, model);
   int dis = SharpIR1.distance();
-  return dis < 100;
   return dis < 100; //La distacia de frente puede ser menor
 }
 int distDerecha() {
@@ -257,16 +256,18 @@ int desfase;
 */
 void controlPD(int der, int izq) {
   int error_anterior = error;
-  Serial1.println(error);
+  //Serial.println((String)"Der: " + der + "\tizq: " + izq);
   error = der - izq;
-  error = constrain(error, -10, 10);
+  Serial.println(error);
+//  error = constrain(error, -40, 40);
   desfase = (KP * error + KD * (error - error_anterior));
-  desfase = constrain(desfase, -10, 10);
-  vel_izq = constrain(vel_izq + desfase, VELOCIDAD_MINIMA, VELOCIDAD_MAXIMA); //si la velocidad mas desfase va a ser mayor que 255 la limito
-  vel_der = constrain(vel_der - desfase, VELOCIDAD_MINIMA, VELOCIDAD_MAXIMA);
+  //desfase = constrain(desfase, -10, 10);
+  vel_izq = constrain(VEL_AVANCE + desfase, VELOCIDAD_MINIMA, VELOCIDAD_MAXIMA); //si la velocidad mas desfase va a ser mayor que 255 la limito
+  vel_der = constrain(VEL_AVANCE - desfase, VELOCIDAD_MINIMA, VELOCIDAD_MAXIMA);
+  Serial.println((String)"Der: " + vel_der + "\tizq: " + vel_izq);
   DER.move(vel_der);
   IZQ.move(vel_izq);
-
+  delay(DELAY);
 }
 bool navegar() {
   if (hayParedFrente()) {
