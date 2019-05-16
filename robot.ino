@@ -8,7 +8,6 @@
 #define PULSOS_GIRO 139
 #define PULSOS_AVANCE 202
 #define ENCODER 7
-
 #define MOTOR_DER_DIR 4
 #define MOTOR_DER_VEL 5
 #define MOTOR_IZQ_DIR 12
@@ -18,10 +17,14 @@
 #define model 20150
 #define VELOCIDAD_MINIMA 25
 #define VELOCIDAD_MAXIMA 50
-#define DISTANCIA_MEDIA 50
-#define COMPLETO
-int KP = 30;
-int KD = 220;
+#define DISTANCIA_MEDIA 40
+
+
+
+#define NAVEGAR
+//#define CONTROL
+int KP = 0;
+int KD = 540;
 
 
 Counter myCounter(ENCODER);
@@ -49,42 +52,45 @@ void setup() {
   Serial1.begin(9600);
 }
 void loop() {
-  #ifdef COMPLETO
+  #ifdef CONTROL
   if (Serial1.available()) {
     estado = !estado;
 
     char data = Serial1.read();
-    Serial1.println(data);
+   // Serial1.println(data);
     switch (data)
     {
-      case 'd':
-        girarDerecha();        
-        break;
-      case 'a':
-        girarIzquierda();
-        break;
-      case 'w':
-        avanzar();
-        break;
-      case 'D':
-        girarNecesario(90);
-        break;
-      case 'A':
-        girarNecesario(270);
-        break;
-      case 'W':
-        girarNecesario(0);
-        break;
-      case 's':
-        Serial1.println(hayParedIzquierda());
-        Serial1.println(hayParedDerecha());
-        break;
-      case 'r':
-        runPath("WWADW");
-        break;
-      case 'p':
-        navegar();
-        break;
+      	case 'd':
+        	girarDerecha();        
+        	break;
+      	case 'a':
+        	girarIzquierda();
+        	break;
+		case 'w':
+        	avanzar();
+        	break;
+      	case 'D':
+        	girarNecesario(90);
+        	break;
+      	case 'A':
+        	girarNecesario(270);
+        	break;
+      	case 'W':
+			girarNecesario(0);
+        	break;
+      	case 's':
+        	Serial1.println(hayParedIzquierda());
+        	Serial1.println(hayParedDerecha());
+        	break;
+      	case 'r':
+        	runPath("WWADW");
+        	break;
+      	case 'p':
+        	navegar();
+        	break;
+		case 'c':
+			corregir();
+		break;
     }
     estado = false;
   }
@@ -96,7 +102,7 @@ void loop() {
 bool hayParedDerecha() {
   //SharpIR SharpIR(SENSOR_DERECHA, model);
   int dis = SharpIR1.distance();
-  return dis < 100; //La distacia de frente puede ser menor 
+  return dis < 100;
 }
 int distDerecha() {
   return SharpIR1.distance();
@@ -292,5 +298,22 @@ int charToDirection(char dir) {
     case 'S':
       return 180;
   }
+
+}
+void corregir(){
+	String data=Serial1.readStringUntil(';');
+	int length=data.length();
+	int numero=data.substring(1,length).toInt();//-2 para obviar la coma
+	switch (data.charAt(0))
+  {
+  case 'p' :
+    KP=numero;
+    break;
+  case 'd' :
+    KD=numero;
+    break;
+  
+  }
+
 
 }
