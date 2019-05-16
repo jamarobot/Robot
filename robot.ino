@@ -16,6 +16,8 @@
 #define VEL_AVANCE 50
 #define model 20150
 #define VELOCIDAD_MINIMA 25
+#define VELOCIDAD_MAXIMA 50
+#define DISTANCIA_MEDIA 70
 int KP = 0;
 int KD = 220;
 
@@ -71,23 +73,22 @@ void loop() {
         girarNecesario(0);
         break;
       case 's':
-        Serial1.println(paredIzquierda());
-        Serial1.println(paredDerecha());
+        Serial1.println(hayParedIzquierda());
+        Serial1.println(hayParedDerecha());
         break;
       case 'r':
         runPath("WWADW");
         break;
       case 'p':
-        navegar();
+        navegar(distDerecha(),distIzquierda());
         break;
     }
     estado = false;
-  } else {
-    //navegar();
-  }*/
+  */
   navegar();
+  
 }
-bool paredDerecha() {
+bool hayParedDerecha() {
   //SharpIR SharpIR(SENSOR_DERECHA, model);
   int dis = SharpIR1.distance();
   return dis < 100;
@@ -99,13 +100,13 @@ int distDerecha() {
 int distIzquierda() {
   return SharpIR2.distance();
 }
-bool paredIzquierda() {
+bool hayParedIzquierda() {
   int dis = SharpIR2.distance();
   return dis < 100;
 }
-bool paredFrente() {
+bool hayParedFrente() {
   int dis = SharpIR3.distance();
-  return dis < 100;
+  return dis < 50;
 }
 int distFrente() {
   return SharpIR3.distance();
@@ -117,6 +118,7 @@ int distFrente() {
 */
 void girarDerecha() {
   orientacion += (orientacion == 270) ? -270 : 90;
+  
   /* if(orientacion==270){
      orientacion=orientacion-270;
     }else{
@@ -127,13 +129,13 @@ void girarDerecha() {
     IZQ.move(FORWARD, VEL_GIRO);
     DER.move(BACKWARD, VEL_GIRO);
     newValue = myCounter.read();
-    //Serial1.println(newValue);
+    
 
   } while (newValue < oldValue + PULSOS_GIRO);
   oldValue = newValue;
   DER.stop();
   IZQ.stop();
-  Serial1.println(orientacion);
+  
 }
 
 /*
@@ -145,14 +147,13 @@ void girarIzquierda() {
   do {
     DER.move(FORWARD, VEL_GIRO);
     IZQ.move(BACKWARD, VEL_GIRO);
-    newValue = myCounter.read();
-    //Serial1.println(newValue);
+    newValue = myCounter.read(); 
 
   } while (newValue < oldValue + PULSOS_GIRO);
   oldValue = newValue;
   DER.stop();
   IZQ.stop();
-  Serial1.println(orientacion);
+  
 }
 
 /*
@@ -163,7 +164,7 @@ void avanzar() {
     DER.move(FORWARD, VEL_GIRO);
     IZQ.move(FORWARD, VEL_GIRO);
     newValue = myCounter.read();
-    Serial1.println(newValue);
+    //Serial1.println(newValue);
 
   } while (newValue < oldValue + PULSOS_AVANCE);
   oldValue = newValue;
@@ -200,12 +201,12 @@ void girarNecesario(int need) {
   if (contarGirosDerecha(orientacion, need) > 2) {
     while (orientacion != need) {
       girarIzquierda();
-      Serial1.println(orientacion);
+     // Serial1.println(orientacion);
     }
   } else {
     while (orientacion != need) {
       girarIzquierda();
-      Serial1.println(orientacion);
+      //Serial1.println(orientacion);
     }
   }
 }
@@ -219,6 +220,7 @@ int contarGirosDerecha( int origen, int fin) {
     }
     giros++;
   }
+  Serial1.print("tengo que hacer ");
   Serial1.println(giros);
   return giros;
 }
@@ -234,24 +236,40 @@ int desfase;
 /*
  * Metodo principal para navegar por el laberinto
  */
-void navegar(){
+void controlPD(int der,int izq){
     int error_anterior=error;
-    error = distDerecha() - distIzquierda();
+  	Serial1.println(error);
+    error = der - izq;
     error=constrain(error,-10,10);
     desfase = (KP * error + KD * (error-error_anterior));
     desfase=constrain(desfase, -10, 10);
-    vel_izq=constrain(vel_izq+desfase,VELOCIDAD_MINIMA,50);//si la velocidad mas desfase va a ser mayor que 255 la limito
-    vel_der=constrain(vel_der-desfase,VELOCIDAD_MINIMA,50);
+    vel_izq=constrain(vel_izq+desfase,VELOCIDAD_MINIMA,VELOCIDAD_MAXIMA);//si la velocidad mas desfase va a ser mayor que 255 la limito
+    vel_der=constrain(vel_der-desfase,VELOCIDAD_MINIMA,VELOCIDAD_MAXIMA);
     DER.move(vel_der);
     IZQ.move(vel_izq);
-  /*Serial1.println(desfase);
-  Serial1.print(vel_izq);
-  Serial1.print("__");
-  Serial1.println(vel_der);
-*/
-
 
 }
+void navegar(){
+  if(hayParedFrente()){
+    DER.stop();
+    IZQ.stop();
+    //girarDerecha();
+    //girarDerecha();
+  }else{
+    if(hayParedDerecha() && hayParedIzquierda()){
+      controlPD(distDerecha(),distIzquierda());
+    }else if(!hayParedDerecha()){
+      controlPD(DISTANCIA_MEDIA,distIzquierda());
+    }else if(!hayParedIzquierda()){
+      controlPD(distDerecha(),DISTANCIA_MEDIA);
+    }else{
+			avanzar();
+	}
+	
+  }
+}
+
+
 int charToDirection(char dir) {
   switch (dir)
   {
