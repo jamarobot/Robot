@@ -5,10 +5,8 @@
 #define SENSOR_DERECHA A3
 #define SENSOR_IZQUIERDA A1
 #define SENSOR_FRENTE A0
-
-#define PULSOS_GIRO 148
-#define PULSOS_AVANCE 200
-
+#define PULSOS_GIRO 139
+#define PULSOS_AVANCE 202
 #define ENCODER 7
 
 #define MOTOR_DER_DIR 4
@@ -20,8 +18,9 @@
 #define model 20150
 #define VELOCIDAD_MINIMA 25
 #define VELOCIDAD_MAXIMA 50
-#define DISTANCIA_MEDIA 70
-int KP = 0;
+#define DISTANCIA_MEDIA 50
+#define COMPLETO
+int KP = 30;
 int KD = 220;
 
 
@@ -50,8 +49,8 @@ void setup() {
   Serial1.begin(9600);
 }
 void loop() {
- 
-  /*if (Serial1.available()) {
+  #ifdef COMPLETO
+  if (Serial1.available()) {
     estado = !estado;
 
     char data = Serial1.read();
@@ -84,13 +83,15 @@ void loop() {
         runPath("WWADW");
         break;
       case 'p':
-        navegar(distDerecha(),distIzquierda());
+        navegar();
         break;
     }
     estado = false;
-  */
+  }
+  #endif
+  #ifdef NAVEGAR
   navegar();
-  
+  #endif
 }
 bool hayParedDerecha() {
   //SharpIR SharpIR(SENSOR_DERECHA, model);
@@ -165,8 +166,12 @@ void girarIzquierda() {
 */
 void avanzar() {
   do {
-    DER.move(FORWARD, VEL_GIRO);
-    IZQ.move(FORWARD, VEL_GIRO);
+    
+    //DER.move(FORWARD, VEL_GIRO);
+    //IZQ.move(FORWARD, VEL_GIRO);
+    if(!navegar()){
+		break;
+	}
     newValue = myCounter.read();
     //Serial1.println(newValue);
 
@@ -202,31 +207,31 @@ void runPath(String path) {
 void girarNecesario(int need) {
 
 
-  if (contarGirosDerecha(orientacion, need) > 2) {
-    while (orientacion != need) {
-      girarIzquierda();
+  	if (contarGirosDerecha(orientacion, need) > 2) {
+    	while (orientacion != need) {
+      		girarIzquierda();
      // Serial1.println(orientacion);
-    }
-  } else {
-    while (orientacion != need) {
-      girarIzquierda();
+    	}
+  	} else {
+	    while (orientacion != need) {
+			girarIzquierda();
       //Serial1.println(orientacion);
-    }
-  }
+	    }
+  	}
 }
 
 int contarGirosDerecha( int origen, int fin) {
-  int giros = 0;
-  while (origen != fin) {
-    origen += 90;
-    if (origen == 360) {
-      origen = 0;
-    }
-    giros++;
-  }
-  Serial1.print("tengo que hacer ");
-  Serial1.println(giros);
-  return giros;
+  	int giros = 0;
+  	while (origen != fin) {
+    	origen += 90;
+		if (origen == 360) {
+      		origen = 0;
+		}
+    		giros++;
+  	}
+  	Serial1.print("tengo que hacer ");
+  	Serial1.println(giros);
+  	return giros;
 }
 
 
@@ -253,24 +258,25 @@ void controlPD(int der,int izq){
     IZQ.move(vel_izq);
 
 }
-void navegar(){
-  if(hayParedFrente()){
-    DER.stop();
-    IZQ.stop();
+bool navegar(){
+  	if(hayParedFrente()){
+    	DER.stop();
+    	IZQ.stop();
+    return false;
     //girarDerecha();
     //girarDerecha();
-  }else{
+  	}else{
     if(hayParedDerecha() && hayParedIzquierda()){
-      controlPD(distDerecha(),distIzquierda());
+      	controlPD(distDerecha(),distIzquierda());
     }else if(!hayParedDerecha()){
-      controlPD(DISTANCIA_MEDIA,distIzquierda());
+      	controlPD(DISTANCIA_MEDIA,distIzquierda());
     }else if(!hayParedIzquierda()){
-      controlPD(distDerecha(),DISTANCIA_MEDIA);
+      	controlPD(distDerecha(),DISTANCIA_MEDIA);
     }else{
-			avanzar();
+		avanzar();
 	}
-	
-  }
+	return true;
+  	}
 }
 
 
