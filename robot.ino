@@ -8,6 +8,7 @@
 #define PULSOS_GIRO 139
 #define PULSOS_AVANCE 202
 #define ENCODER 7
+
 #define MOTOR_DER_DIR 4
 #define MOTOR_DER_VEL 5
 #define MOTOR_IZQ_DIR 12
@@ -95,7 +96,7 @@ void loop() {
 bool hayParedDerecha() {
   //SharpIR SharpIR(SENSOR_DERECHA, model);
   int dis = SharpIR1.distance();
-  return dis < 100;
+  return dis < 100; //La distacia de frente puede ser menor 
 }
 int distDerecha() {
   return SharpIR1.distance();
