@@ -5,9 +5,12 @@
 #define SENSOR_DERECHA A3
 #define SENSOR_IZQUIERDA A1
 #define SENSOR_FRENTE A0
+
 #define PULSOS_GIRO 148
 #define PULSOS_AVANCE 200
+
 #define ENCODER 7
+
 #define MOTOR_DER_DIR 4
 #define MOTOR_DER_VEL 5
 #define MOTOR_IZQ_DIR 12
@@ -45,6 +48,7 @@ void setup() {
   Serial1.begin(9600);
 }
 void loop() {
+ 
   /*if (Serial1.available()) {
     estado = !estado;
 
@@ -85,12 +89,13 @@ void loop() {
   } else {
     //navegar();
   }*/
-  navegar();
+//navegar();
+navegacion();
 }
 bool paredDerecha() {
   //SharpIR SharpIR(SENSOR_DERECHA, model);
   int dis = SharpIR1.distance();
-  return dis < 100;
+  return dis < 100; //La distacia de frente puede ser menor 
 }
 int distDerecha() {
   return SharpIR1.distance();
@@ -249,9 +254,28 @@ void navegar(){
   Serial1.print("__");
   Serial1.println(vel_der);
 */
-
-
 }
+void navegacion(){
+  if (paredDerecha() == true && paredIzquierda() == true && paredFrente() == true){
+    girarDerecha();
+    girarDerecha();
+    avanzar();
+  }else if (paredDerecha() == true && paredFrente() == true){
+    girarIzquierda();
+    avanzar();
+  }else if (paredIzquierda() == true && paredFrente() == true){
+    girarDerecha();
+    avanzar();
+  }else if (paredIzquierda() == true && paredDerecha() == true){
+    avanzar();
+  }else if (paredFrente() == true){
+    girarDerecha();
+    avanzar();
+  }else{
+    avanzar();
+  }
+}
+
 int charToDirection(char dir) {
   switch (dir)
   {
