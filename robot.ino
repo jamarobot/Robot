@@ -28,9 +28,9 @@ Counter myCounter(ENCODER);
 DcMotor IZQ;
 DcMotor DER;
 
-SharpIR SharpIR1(SENSOR_DERECHA, model);
-SharpIR SharpIR2(SENSOR_IZQUIERDA, model);
-SharpIR SharpIR3(SENSOR_FRENTE, model);
+SharpIR SharpIR1(SENSOR_DERECHA, model); //sensor derecho
+SharpIR SharpIR2(SENSOR_IZQUIERDA, model); //sensor izquierda
+SharpIR SharpIR3(SENSOR_FRENTE, model); // sensor delantero
 
 bool estado = false;
 bool encendido = true;
@@ -49,9 +49,8 @@ void setup() {
   Serial1.begin(9600);
 }
 void loop() {
-  #ifdef COMPLETO
-  if (Serial1.available()) {
-    estado = !estado;
+
+if (Serial1.available()) {
 
 #ifdef COMPLETO
     if (Serial1.available()) {
@@ -105,11 +104,11 @@ bool hayParedDerecha() {
   return dis < 100; //La distacia de frente puede ser menor
 }
 int distDerecha() {
-  return SharpIR1.distance();
+  return SharpIR1.distance(); //recogida de datos de sensor derecho
 }
 
 int distIzquierda() {
-  return SharpIR2.distance();
+  return SharpIR2.distance(); //recogida de datos de sensor izquierdo
 }
 bool hayParedIzquierda() {
   int dis = SharpIR2.distance();
@@ -120,12 +119,14 @@ bool hayParedFrente() {
   return dis < 50;
 }
 int distFrente() {
-  return SharpIR3.distance();
+  return SharpIR3.distance(); //recogida de datos de sensor delantero
 }
 
 /*
    Metodo para que gire a la derecha utilizando metodos move de la libreria
    se pasa la orientacion y la velocidad de giro
+   Gira a la derecha mientras leer datos del counter, seguira mientras los datos recogidos sean menores 
+   que los datos anteriores (declarado con 0) y los datos de pulsos de giro
 */
 void girarDerecha() {
   orientacion += (orientacion == 270) ? -270 : 90;
@@ -137,12 +138,12 @@ void girarDerecha() {
     }
   */
   do {
-    IZQ.move(FORWARD, VEL_GIRO);
+    IZQ.move(FORWARD, VEL_GIRO); // direccion y velocidad
     DER.move(BACKWARD, VEL_GIRO);
-    newValue = myCounter.read();
+    newValue = myCounter.read(); //lectura de datos del encoder
 
 
-  } while (newValue < oldValue + PULSOS_GIRO);
+  } while (newValue < oldValue + PULSOS_GIRO);  
   oldValue = newValue;
   DER.stop();
   IZQ.stop();
