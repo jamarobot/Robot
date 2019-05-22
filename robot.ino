@@ -5,8 +5,8 @@
 #define SENSOR_DERECHA A3
 #define SENSOR_IZQUIERDA A1
 #define SENSOR_FRENTE A0
-#define PULSOS_GIRO 139
-#define PULSOS_AVANCE 202
+
+//#define PULSOS_AVANCE 202
 #define ENCODER 7
 #define MOTOR_DER_DIR 4
 #define MOTOR_DER_VEL 5
@@ -15,18 +15,21 @@
 #define VEL_GIRO 50
 #define VEL_AVANCE 50
 #define model 20150
-#define VELOCIDAD_MINIMA 20
-#define VELOCIDAD_MAXIMA 100
+#define VELOCIDAD_MINIMA 40
+#define VELOCIDAD_MAXIMA 70
 #define DISTANCIA_MEDIA 40
+
+#define DISTANCIA_MAXIMA 80
 #define DELAY 10
 
-
-#define NAVEGAR
-//#define CONTROL
-int KP = 5;
-int KD = 25;
-
-
+#define DETECTA_FRENTE
+//#define NAVEGAR
+#define CONTROL
+int KP = 1;
+int KD = 30;
+int 
+PULSOS_AVANCE= 235;
+int PULSOS_GIRO =140;
 Counter myCounter(ENCODER);
 DcMotor IZQ;
 DcMotor DER;
@@ -38,7 +41,7 @@ SharpIR SharpIR3(SENSOR_FRENTE, model); // sensor delantero
 bool estado = false;
 bool encendido = true;
 long oldValue = 0;
-long newValue;
+long newValue=0;
 
 int orientacion = 0;
 int necesario = 0;
@@ -57,7 +60,7 @@ void loop() {
     estado = !estado;
 
     char data = Serial1.read();
-   // Serial1.println(data);
+    Serial1.println(data);
     switch (data)
     {
       	case 'd':
@@ -83,15 +86,20 @@ void loop() {
         	Serial1.println(hayParedDerecha());
         	break;
       	case 'r':
-        	runPath("WWADW");
+        	runPath("DWWAWDWAWAWDWDW");
         	break;
       	case 'p':
         	navegar();
         	break;
-		case 'c':
-			corregir();
-		break;
+        case 's':
+          der.stop();
+          izq.stop();
+          break;
+		    case 'c':
+			    corregir();
+		    break;
     }
+  }
 #endif
 #ifdef NAVEGAR
     navegar(); 
@@ -117,7 +125,8 @@ bool hayParedIzquierda() {
 }
 bool hayParedFrente() {
   int dis = SharpIR3.distance();
-  return dis < 50;
+  return dis < DISTANCIA_MAXIMA;
+ // return false;
 }
 int distFrente() {
   return SharpIR3.distance(); //recogida de datos de sensor delantero
@@ -142,7 +151,7 @@ void girarDerecha() {
     IZQ.move(FORWARD, VEL_GIRO); // direccion y velocidad
     DER.move(BACKWARD, VEL_GIRO);
     newValue = myCounter.read(); //lectura de datos del encoder
-
+    Serial.println(newValue);
 
   } while (newValue < oldValue + PULSOS_GIRO);  
   oldValue = newValue;
@@ -162,7 +171,7 @@ void girarIzquierda() {
     DER.move(FORWARD, VEL_GIRO);
     IZQ.move(BACKWARD, VEL_GIRO);
     newValue = myCounter.read();
-
+    Serial.println(newValue);
   } while (newValue < oldValue + PULSOS_GIRO);
   oldValue = newValue;
   DER.stop();
@@ -176,15 +185,14 @@ void girarIzquierda() {
 void avanzar() {
   do {
 
-    //DER.move(FORWARD, VEL_GIRO);
-    //IZQ.move(FORWARD, VEL_GIRO);
+    
     if (!navegar()) {
       break;
     }
     newValue = myCounter.read();
     //Serial1.println(newValue);
 
-  } while (newValue < oldValue + PULSOS_AVANCE);
+  } while (newValue < oldValue+ PULSOS_AVANCE);
   oldValue = newValue;
   DER.stop();
   IZQ.stop();
@@ -206,6 +214,7 @@ void runPath(String path) {
         avanzar();
         break;
     }
+    delay(300);
   }
 }
 
@@ -214,7 +223,6 @@ void runPath(String path) {
    Delta es la diferecia, la orientcion final
 */
 void girarNecesario(int need) {
-
 
   if (contarGirosDerecha(orientacion, need) > 2) {
     while (orientacion != need) {
@@ -264,6 +272,9 @@ void controlPD(int der, int izq) {
   //desfase = constrain(desfase, -10, 10);
   vel_izq = constrain(VEL_AVANCE + desfase, VELOCIDAD_MINIMA, VELOCIDAD_MAXIMA); //si la velocidad mas desfase va a ser mayor que 255 la limito
   vel_der = constrain(VEL_AVANCE - desfase, VELOCIDAD_MINIMA, VELOCIDAD_MAXIMA);
+
+  //vel_izq = VEL_AVANCE + desfase; //si la velocidad mas desfase va a ser mayor que 255 la limito
+  //vel_der = VEL_AVANCE - desfase;
   Serial.println((String)"Der: " + vel_der + "\tizq: " + vel_izq);
   DER.move(vel_der);
   IZQ.move(vel_izq);
@@ -271,11 +282,16 @@ void controlPD(int der, int izq) {
 }
 bool navegar() {
   if (hayParedFrente()) {
-    DER.stop();
-    IZQ.stop();
+    #ifdef DETECTA_FRENTE
+      DER.stop();
+      IZQ.stop();
+    #endif
+    //girarIzquierda();
+    //girarDerecha();
+    //girarDerecha();
     return false;
-    //girarDerecha();
-    //girarDerecha();
+    
+    
   } else {
     if (hayParedDerecha() && hayParedIzquierda()) {
       controlPD(distDerecha(), distIzquierda());
@@ -284,7 +300,7 @@ bool navegar() {
     } else if (!hayParedIzquierda()) {
       controlPD(distDerecha(), DISTANCIA_MEDIA);
     } else {
-      avanzar();
+     controlPD(DISTANCIA_MEDIA, DISTANCIA_MEDIA);
     }
     return true;
   }
@@ -317,8 +333,12 @@ void corregir(){
   case 'd' :
     KD=numero;
     break;
-  
+  case 'a' :
+    PULSOS_AVANCE=numero;
+    break;
+    case 'g' :
+    PULSOS_GIRO=numero;
+    break;
   }
-
 
 }
