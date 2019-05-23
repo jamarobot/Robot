@@ -24,11 +24,13 @@
 
 #define DETECTA_FRENTE
 //#define NAVEGAR
-#define CONTROL
+//#define CONTROL
+#define ZOMBI
 int KP = 1;
 int KD = 30;
 int 
-PULSOS_AVANCE= 235;
+//PULSOS_AVANCE= 235;
+PULSOS_AVANCE= 222;
 int PULSOS_GIRO =140;
 Counter myCounter(ENCODER);
 DcMotor IZQ;
@@ -55,6 +57,9 @@ void setup() {
   Serial1.begin(9600);
 }
 void loop() {
+  #ifdef ZOMBI
+  modoZombie();
+  #endif
   #ifdef CONTROL
   if (Serial1.available()) {
     estado = !estado;
@@ -340,5 +345,18 @@ void corregir(){
     PULSOS_GIRO=numero;
     break;
   }
-
 }
+  void modoZombie(){
+  
+      if(!hayParedDerecha()){
+        girarDerecha();
+        delay(300);
+      }else if(hayParedFrente()){
+        girarIzquierda();
+        delay(300);
+      }
+      avanzar();
+      delay(300);
+  }
+
+
